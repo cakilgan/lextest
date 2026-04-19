@@ -1,32 +1,49 @@
 #include "lextest.h"
 #include <cstdio>
-#include <cstring>
 #include <vector>
+#include <string>
 
-#define _PAINT(code, x) "\033[" code "m" x "\033[0m"
+void lx::parse_args(int argc, char **argv) {
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
 
-#define BOLD(x) "\033[1m" x "\033[0m"
-#define DIM(x) "\033[2m" x "\033[0m"
+        if (arg == "--no-color") {
+            config.use_color = false;
+        }
+        else if (arg == "--color") {
+            config.use_color = true;
+        }
+        else if (arg == "--list") {
+            config.list_only = true;
+        }
+        else if (arg == "--verbose") {
+            config.verbose = true;
+        }
+        else if (arg == "--fail-fast") {
+            config.fail_fast = true;
+        }
+        else if (arg.rfind("--filter=", 0) == 0) {
+            config.filter = arg.substr(9);
+        }
+    }
+}
 
-#define BLACK(x) _PAINT("30", x)
-#define RED(x) _PAINT("31", x)
-#define GREEN(x) _PAINT("32", x)
-#define YELLOW(x) _PAINT("33", x)
-#define BLUE(x) _PAINT("34", x)
-#define MAGENTA(x) _PAINT("35", x)
-#define CYAN(x) _PAINT("36", x)
-#define WHITE(x) _PAINT("37", x)
-#define GRAY(x) _PAINT("90", x)
+inline std::string paint(const char* code, const std::string& text) {
+    if (!lx::config.use_color) return text;
+    return "\033[" + std::string(code) + "m" + text + "\033[0m";
+}
 
-#define BG_RED(x) _PAINT("41", x)
-#define BG_GREEN(x) _PAINT("42", x)
-#define BG_YELLOW(x) _PAINT("43", x)
-#define BG_BLUE(x) _PAINT("44", x)
+inline std::string bold(const std::string& s)   { return paint("1", s); }
+inline std::string red(const std::string& s)    { return paint("31", s); }
+inline std::string green(const std::string& s)  { return paint("32", s); }
+inline std::string yellow(const std::string& s) { return paint("33", s); }
+inline std::string blue(const std::string& s)   { return paint("34", s); }
+inline std::string magenta(const std::string& s){ return paint("35", s); }
+inline std::string gray(const std::string& s)   { return paint("90", s); }
 
-#define BOLD_RED(x) "\033[1;31m" x "\033[0m"
-#define BOLD_GREEN(x) "\033[1;32m" x "\033[0m"
-#define BOLD_YELLOW(x) "\033[1;33m" x "\033[0m"
-#define BOLD_CYAN(x) "\033[1;36m" x "\033[0m"
+inline std::string bg_red(const std::string& s)   { return paint("41", s); }
+inline std::string bg_green(const std::string& s) { return paint("42", s); }
+inline std::string bg_blue(const std::string& s)  { return paint("44", s); }
 
 using namespace lx;
 
@@ -35,107 +52,172 @@ test_id lx::add_case(registry &registry_, test_case::test_function func,
     registry_.test_cases.push_back({func, description});
     return {registry_.test_cases.size() - 1};
 }
+
 int lx::run_all(registry &REGISTRY) {
     printf("\n");
-    printf(BLUE(BOLD("----%s----\n")), "LEXTEST");
-    printf(GREEN("starting...\n"));
 
-    std::vector<const char *> results;
+    std::string header = blue(bold("----LEXTEST----"));
+    printf("%s\n", header.c_str());
+    printf("%s\n", green("starting...").c_str());
+
+    printf("%s\n",(yellow("FILTERING CATEGORY: ")+config.filter).c_str());
+
+    std::vector<test_result> results;
 
     int passed{0};
     int failed{0};
 
-    printf(YELLOW("iterating tests...\n\n"));
+    printf("%s\n\n", yellow("iterating tests...").c_str());
+
     for (auto &test : REGISTRY.test_cases) {
         int passed_in{0};
         int failed_in{0};
+
+        if(config.filter!="ALL" && config.filter != test.description.category){
+            continue;
+        }
+
         test.function(&test);
 
         if (test.controller.state == lx::test_controller::test_state::skipped) {
-            printf(GRAY("SKIP: ") "%s (%s # %s)\n", "skipping this test...",
-                   test.description.category, test.description.name);
-            results.push_back((BG_RED("FAIL")));
+            printf("%s%s (%s # %s)\n",
+                   gray("SKIP: ").c_str(),
+                   "skipping this test...",
+                   test.description.category,
+                   test.description.name);
+
+            results.push_back(test_result::fail);
             continue;
         }
 
-        printf("---- TEST : " YELLOW("%s") " # " MAGENTA(
-                   "%s") "\nDESCRIPTION : " GREEN("\"%s\"") "\n",
-               test.description.category, test.description.name,
-               test.description.description);
+        if(!config.list_only)
+            printf("---- TEST : %s # %s\n%s%s",
+                yellow(test.description.category).c_str(),
+                magenta(test.description.name).c_str(),
+                config.verbose ? "DESCRIPTION : " : "",
+                config.verbose ? (green(test.description.description)+"\n").c_str(): "");
+
         for (auto &ev : test.events) {
             if (ev.control.skipped) {
-                printf(GRAY("  SKIP: ") "%s (%s)\n", "skipping this event...",
-                       ev.assertion.expression);
+                if(!config.list_only)
+                    printf("%s%s (%s)\n\n",
+                        gray("  SKIP: ").c_str(),
+                        "skipping this event...",
+                        ev.assertion.expression);
                 continue;
             }
+
             if (ev.control.deprecated) {
-                printf(YELLOW("  WARN: ") "%s (%s)\n",
-                       "this event is deprecated.", ev.assertion.expression);
+                if(!config.list_only)
+                    printf("%s%s (%s)\n",
+                        yellow("  WARN: ").c_str(),
+                        "this event is deprecated.",
+                        ev.assertion.expression);
             }
 
-            auto pass = ev.assertion.result == test_event_result::pass;
-            printf(BOLD(GREEN("  $")) "    %s\n", ev.assertion.expression);
-            printf("  %s    %s\n", pass ? GREEN("PASS") : BG_RED("FAIL"),
-                   ev.assertion.evaluated.c_str());
+            bool pass = ev.assertion.result == test_event_result::pass;
 
-            if (ev.log.message != nullptr &&
-                ev.log.level == lx::log_level::NO_LOG_JUST_DETAIL) {
-                printf(GRAY("  %s\n"), ev.log.message);
-            } else if (ev.log.message != nullptr) {
-                printf(GRAY("  LOG: %s\n"), ev.log.message);
+            if(!config.list_only){
+                if(config.verbose)
+                    printf("%s    %s\n",
+                        bold(green("  $")).c_str(),
+                        ev.assertion.expression);
+
+                printf("  %s    %s%s",
+                   (pass ? green("PASS") : bg_red("FAIL")).c_str(),
+                   ev.assertion.evaluated.c_str(),config.verbose ? "\n" : "");
+
+                if (ev.log.message != nullptr && config.verbose) {
+                    if (ev.log.level == lx::log_level::NO_LOG_JUST_DETAIL) {
+                        printf("%s%s\n",
+                            gray("  ").c_str(),
+                            ev.log.message);
+                    } else {
+                    printf("%s%s\n",
+                           gray("  LOG: ").c_str(),
+                           ev.log.message);
+                    }
+                }
             }
 
-            if (pass) {
+            if (pass)
                 passed_in++;
-            } else {
+            else
                 failed_in++;
-            }
+
+            if(!config.list_only)
+                printf("\n");
         }
 
-        printf("---- TEST : " YELLOW("%s") " # " BOLD(
-                   MAGENTA("%s")) "  [" GREEN("p:%d") " " RED("f:%d") "] %s"
-                                                                      "\n",
-               test.description.category, test.description.name, passed_in,
-               failed_in, failed_in > 0 ? BG_RED("FAIL") : BG_GREEN("PASS"));
+        bool test_failed = failed_in > 0;
 
-        if (failed_in > 0) {
-            results.push_back((BG_RED("FAIL")));
+
+        std::string p_str = "p:" + std::to_string(passed_in);
+        std::string f_str = "f:" + std::to_string(failed_in);
+
+        if(!config.list_only)
+            printf("---- TEST : %s # %s  [%s %s] %s\n",
+                yellow(test.description.category).c_str(),
+                bold(magenta(test.description.name)).c_str(),
+                green(p_str).c_str(),
+                red(f_str).c_str(),
+                (test_failed ? bg_red("FAIL") : bg_green("PASS")).c_str());
+
+        if (test_failed) {
+            results.push_back(test_result::fail);
             failed++;
         } else {
-            results.push_back((BG_GREEN("PASS")));
+            results.push_back(test_result::pass);
             passed++;
         }
 
-        printf("\n");
+        if(!config.list_only)
+            printf("\n");
     }
 
-    printf("%s \n", BOLD(GREEN("finished test suite")));
-    printf("%s \n", YELLOW("getting overall results..."));
+    printf("%s\n", bold(green("finished test suite")).c_str());
+    printf("%s\n\n", yellow("getting overall results...").c_str());
 
-    printf("\n");
-    printf("\n");
+    printf("%s\n\n", bg_blue("OVERALL").c_str());
 
-    printf(BG_BLUE("OVERALL") "\n");
-    printf("\n");
-
-    for (size_t i{0}; i < REGISTRY.test_cases.size(); i++) {
+    for (size_t i = 0; i < REGISTRY.test_cases.size(); i++) {
         auto &test = REGISTRY.test_cases[i];
+        
+        if(config.filter!="ALL" && config.filter != test.description.category){
+            continue;
+        }
+
         if (test.controller.state == lx::test_controller::test_state::skipped) {
-            printf(GRAY("SKIPPED") " " YELLOW("%s") " # " MAGENTA("%s") "\n",
-                   test.description.category, test.description.name);
+            printf("%s %s # %s\n",
+                   gray("SKIPPED").c_str(),
+                   yellow(test.description.category).c_str(),
+                   magenta(test.description.name).c_str());
             continue;
         }
-        if (strcmp(results[i] ,BG_RED("FAIL")) == 0) {
-            continue;
-        }
-        printf(YELLOW("%s") " # " MAGENTA("%s") ": %s"
-                                                "\n",
-               test.description.category, test.description.name, results[i]);
+
+        if(!config.verbose)
+            if (results[i] == test_result::pass)
+                continue;
+
+        const char* res_str =
+            (results[i] == test_result::pass)
+                ? bg_green("PASS").c_str()
+                : bg_red("FAIL").c_str();
+
+        printf("%s # %s: %s\n",
+               yellow(test.description.category).c_str(),
+               magenta(test.description.name).c_str(),
+               res_str);
     }
 
     printf("\n");
-    printf(BG_RED("FAILURES:%d") " " BG_GREEN("PASSES:%d") "\n", failed,
-           passed);
+
+    std::string fail_str = "FAILURES:" + std::to_string(failed);
+    std::string pass_str = "PASSES:" + std::to_string(passed);
+
+    printf("%s %s\n",
+           bg_red(fail_str).c_str(),
+           bg_green(pass_str).c_str());
 
     printf("\n");
     return 0;

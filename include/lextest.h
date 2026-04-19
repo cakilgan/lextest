@@ -105,6 +105,19 @@ test_id add_case(registry &registry_, test_case::test_function func,
 int run_all(registry &registry_);
 test_case &get_case(registry &registry_, test_id &id);
 
+
+
+
+inline struct config{
+    bool use_color = true;
+    bool verbose = false;
+    bool list_only = false;
+    bool fail_fast = false;
+    std::string filter = "ALL";
+} config;
+
+void parse_args(int argc, char** argv);
+
 }; // namespace lx
 
 #define _LX_STR2(x) #x
@@ -133,7 +146,8 @@ test_case &get_case(registry &registry_, test_id &id);
         ev.log.message = FILE_ ":" _LX_STR1(LINE_);                            \
                                                                                \
         return &ev;                                                            \
-    }()
+    }();                                                                       \
+    if((((a) OP (b))!=true) && ::lx::config.fail_fast && !self->events.back().control.skipped) LXRETURN;               
 
 #define __LXSTR_IMPL(a, b, op, FILE_, LINE_)                                   \
     [&]() {                                                                    \
@@ -156,7 +170,8 @@ test_case &get_case(registry &registry_, test_id &id);
                                                                                \
         ev.log.level = lx::log_level::NO_LOG_JUST_DETAIL;                      \
         ev.log.message = FILE_ ":" _LX_STR1(LINE_);                            \
-    }()
+    }();                                                                       \
+    if((((std::string(a) op std::string(b)))!=true) && ::lx::config.fail_fast && !self->events.back().control.skipped) LXRETURN;               
 
 #define LXGT(a, b) __LX_TEST_EVENT_IMPL(a, b, >, __FILE__, __LINE__)
 #define LXLT(a, b) __LX_TEST_EVENT_IMPL(a, b, <, __FILE__, __LINE__)
@@ -173,12 +188,13 @@ test_case &get_case(registry &registry_, test_id &id);
 #define LXSKIPTEST(as)                                                         \
     self->controller.state = lx::test_controller::test_state::skipped;         \
     return lx::test_result::as;
+
 #define LXSKIP                                                                 \
     ::lx::detail::__lx_test_event_skipper__ __LX_CONCAT(__skipper,             \
                                                         __COUNTER__) =
 #define LXDEPRECATED                                                           \
     ::lx::detail::__lx_test_event_deprecater__ __LX_CONCAT(__deprecater,       \
-                                                           __COUNTER__) =
+                                                           __COUNTER__) =                                                
 
 #define LXTEST(category, name, description)                                    \
     lx::test_result category##name##LX_TEST_STATIC(lx::test_case *self);       \
