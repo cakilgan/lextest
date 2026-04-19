@@ -167,7 +167,7 @@ test_case &get_case(registry &registry_, test_id &id);
 #define LXDEPRECATED                                                           \
     ::lx::detail::__lx_test_event_deprecater__ __LX_CONCAT(__deprecater,       \
                                                            __COUNTER__) =
-#define LXSTREQ(nm, a, b) __LXSTREQ_IMPL(nm, a, b, __FILE__, __LINE__)
+#define LXSTREQ(a, b) __LXSTREQ_IMPL(a, b, __FILE__, __LINE__)
 #define LXTEST(category, name, description)                                    \
     lx::test_result category##name##LX_TEST_STATIC(lx::test_case *self);       \
     static lx::test_id __LX_CONCAT(__lx_test_case_id, __COUNTER__) =           \
