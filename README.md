@@ -15,9 +15,9 @@ include(lextest/cmake/lextest.cmake)
 lx_add_test(example-1 test1.cpp)
 ```
 
-That's it. Each test file gets its own executable with an entrypoint provided automatically via `entrypoint.cpp`.
+That's it. Each test target gets its own executable with an entrypoint provided automatically via `entrypoint.cpp`.
 
-> **Note:** The CMake function is `lx_add_test` (singular), not `lx_add_tests`.
+> **Note:** The CMake function is `lx_add_test` (singular), not `lx_add_tests` , this means it generates 1 target with multiple files.
 
 ---
 
