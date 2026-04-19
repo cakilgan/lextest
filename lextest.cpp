@@ -108,6 +108,10 @@ int lx::run_all(registry &REGISTRY) {
         printf("\n");
     }
     printf("\n");
+
+    printf("%s \n", BOLD(GREEN("finished test suite")));
+    printf("%s \n", YELLOW("getting overall results..."));
+
     printf(BG_BLUE("OVERALL") "\n");
     printf("\n");
 
