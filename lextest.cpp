@@ -1,5 +1,6 @@
 #include "lextest.h"
 #include <cstdio>
+#include <cstring>
 #include <vector>
 
 #define _PAINT(code, x) "\033[" code "m" x "\033[0m"
@@ -124,7 +125,7 @@ int lx::run_all(registry &REGISTRY) {
                    test.description.category, test.description.name);
             continue;
         }
-        if (results[i] != BG_RED("FAIL")) {
+        if (strcmp(results[i] ,BG_RED("FAIL")) == 0) {
             continue;
         }
         printf(YELLOW("%s") " # " MAGENTA("%s") ": %s"

@@ -187,4 +187,6 @@ test_case &get_case(registry &registry_, test_id &id);
                      {#category, #name, description});                         \
     lx::test_result category##name##LX_TEST_STATIC(lx::test_case *self)
 
+#define LXRETURN return ::lx::test_result::pass;
+
 #endif // LEXTEST_H
