@@ -114,7 +114,7 @@ int lx::run_all(registry &REGISTRY) {
     for (size_t i{0}; i < REGISTRY.test_cases.size(); i++) {
         auto &test = REGISTRY.test_cases[i];
         if (test.controller.state == lx::test_controller::test_state::skipped) {
-            printf(GRAY("SKIPPED") " " YELLOW("%s") " # " MAGENTA("%s"),
+            printf(GRAY("SKIPPED") " " YELLOW("%s") " # " MAGENTA("%s") "\n",
                    test.description.category, test.description.name);
             continue;
         }
