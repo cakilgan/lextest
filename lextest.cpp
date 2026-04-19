@@ -65,8 +65,20 @@ int lx::run_all(registry &REGISTRY) {
         return 0;
     }
 
+    if(config.list_only){
+        for (auto &test : REGISTRY.test_cases) {
+            printf("---- TEST : %s # %s\n%s%s",
+                yellow(test.description.category).c_str(),
+                magenta(test.description.name).c_str(),
+                "DESCRIPTION : " ,
+                (green(test.description.description)+"\n").c_str());
+        }
+        return 0;
+    }
+
     printf("\n");
 
+    
     std::string header = blue(bold("----LEXTEST----"));
     printf("%s\n", header.c_str());
     printf("%s\n", green("starting...").c_str());
@@ -100,30 +112,27 @@ int lx::run_all(registry &REGISTRY) {
             results.push_back(test_result::fail);
             continue;
         }
-
-        if(!config.list_only)
-            printf("---- TEST : %s # %s\n%s%s",
-                yellow(test.description.category).c_str(),
-                magenta(test.description.name).c_str(),
-                config.verbose ? "DESCRIPTION : " : "",
-                config.verbose ? (green(test.description.description)+"\n").c_str(): "");
+        
+        printf("---- TEST : %s # %s\n%s%s",
+            yellow(test.description.category).c_str(),
+            magenta(test.description.name).c_str(),
+            config.verbose ? "DESCRIPTION : " : "",
+            config.verbose ? (green(test.description.description)+"\n").c_str(): "");
 
         for (auto &ev : test.events) {
             if (ev.control.skipped) {
-                if(!config.list_only)
-                    printf("%s%s (%s)\n\n",
-                        gray("  SKIP: ").c_str(),
-                        "skipping this event...",
-                        ev.assertion.expression);
+                printf("%s%s (%s)\n\n",
+                    gray("  SKIP: ").c_str(),
+                    "skipping this event...",
+                    ev.assertion.expression);
                 continue;
             }
 
             if (ev.control.deprecated) {
-                if(!config.list_only)
-                    printf("%s%s (%s)\n",
-                        yellow("  WARN: ").c_str(),
-                        "this event is deprecated.",
-                        ev.assertion.expression);
+                printf("%s%s (%s)\n",
+                    yellow("  WARN: ").c_str(),
+                    "this event is deprecated.",
+                    ev.assertion.expression);
             }
 
             bool pass = ev.assertion.result == test_event_result::pass;
@@ -156,8 +165,7 @@ int lx::run_all(registry &REGISTRY) {
             else
                 failed_in++;
 
-            if(!config.list_only)
-                printf("\n");
+            printf("\n");
         }
 
         bool test_failed = failed_in > 0;
@@ -166,13 +174,12 @@ int lx::run_all(registry &REGISTRY) {
         std::string p_str = "p:" + std::to_string(passed_in);
         std::string f_str = "f:" + std::to_string(failed_in);
 
-        if(!config.list_only)
-            printf("---- TEST : %s # %s  [%s %s] %s\n",
-                yellow(test.description.category).c_str(),
-                bold(magenta(test.description.name)).c_str(),
-                green(p_str).c_str(),
-                red(f_str).c_str(),
-                (test_failed ? bg_red("FAIL") : bg_green("PASS")).c_str());
+        printf("---- TEST : %s # %s  [%s %s] %s\n",
+            yellow(test.description.category).c_str(),
+            bold(magenta(test.description.name)).c_str(),
+            green(p_str).c_str(),
+            red(f_str).c_str(),
+            (test_failed ? bg_red("FAIL") : bg_green("PASS")).c_str());
 
         if (test_failed) {
             results.push_back(test_result::fail);
@@ -182,8 +189,7 @@ int lx::run_all(registry &REGISTRY) {
             passed++;
         }
 
-        if(!config.list_only)
-            printf("\n");
+        printf("\n");
     }
 
     printf("%s\n", bold(green("finished test suite")).c_str());
