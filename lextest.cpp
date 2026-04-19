@@ -216,10 +216,13 @@ int lx::run_all(registry &REGISTRY) {
             if (results[i] == test_result::pass)
                 continue;
 
+        auto pass_str = bg_green("PASS");
+        auto fail_str = bg_red("FAIL");
+
         const char* res_str =
             (results[i] == test_result::pass)
-                ? bg_green("PASS").c_str()
-                : bg_red("FAIL").c_str();
+                ? pass_str.c_str()
+                : fail_str.c_str();
 
         printf("%s # %s: %s\n",
                yellow(test.description.category).c_str(),
