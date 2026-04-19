@@ -104,11 +104,13 @@ test_id add_case(registry &registry_, test_case::test_function func,
                  test_description description);
 int run_all(registry &registry_);
 test_case &get_case(registry &registry_, test_id &id);
-
+std::string run_json(registry& registry_,bool pretty);
 
 
 
 inline struct config{
+    bool json = false;
+    bool json_pretty = false;
     bool use_color = true;
     bool verbose = false;
     bool list_only = false;

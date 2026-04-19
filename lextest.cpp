@@ -13,6 +13,12 @@ void lx::parse_args(int argc, char **argv) {
         else if (arg == "--color") {
             config.use_color = true;
         }
+        else if (arg == "--json") {
+            config.json = true;
+        }
+        else if (arg == "--json-pretty") {
+            config.json_pretty = true;
+        }
         else if (arg == "--list") {
             config.list_only = true;
         }
@@ -54,6 +60,11 @@ test_id lx::add_case(registry &registry_, test_case::test_function func,
 }
 
 int lx::run_all(registry &REGISTRY) {
+    if(config.json){
+        printf("%s",lx::run_json(REGISTRY,config.json_pretty).c_str());
+        return 0;
+    }
+
     printf("\n");
 
     std::string header = blue(bold("----LEXTEST----"));
@@ -225,4 +236,159 @@ int lx::run_all(registry &REGISTRY) {
 
 test_case &lx::get_case(registry &registry_, test_id &id) {
     return registry_.test_cases[id.id];
+}
+
+
+struct json_event {
+    std::string expression;
+    std::string evaluated;
+    bool pass;
+    bool skipped;
+    bool deprecated;
+    std::string file;
+};
+
+struct json_test {
+    std::string category;
+    std::string name;
+    std::string description;
+
+    std::vector<json_event> events;
+
+    int passed = 0;
+    int failed = 0;
+    bool skipped = false;
+};
+
+struct json_report {
+    std::vector<json_test> tests;
+    int total_passed = 0;
+    int total_failed = 0;
+};
+
+struct json_writer {
+    std::ostringstream out;
+    int indent_level = 0;
+    bool pretty = true;
+
+    json_writer(bool pretty_mode = true)
+        : pretty(pretty_mode) {}
+
+    // ---- indent helper ----
+    void indent() {
+        if (!pretty) return;
+        for (int i = 0; i < indent_level; i++)
+            out << "  ";
+    }
+
+    void newline() {
+        if (pretty) out << "\n";
+    }
+
+    void key(const std::string &k) {
+        indent();
+        out << "\"" << k << "\":";
+    }
+
+    void value(const std::string &v) {
+        out << "\"" << v << "\"";
+    }
+
+    void value(bool v) {
+        out << (v ? "true" : "false");
+    }
+
+    void value(int v) {
+        out << v;
+    }
+
+    void begin_object() {
+        indent();
+        out << "{";
+        indent_level++;
+        newline();
+    }
+
+    void end_object(bool comma = false) {
+        indent_level--;
+        newline();
+        indent();
+        out << "}";
+        if (comma) out << ",";
+        newline();
+    }
+
+    void begin_array() {
+        indent();
+        out << "[";
+        indent_level++;
+        newline();
+    }
+
+    void end_array(bool comma = false) {
+        indent_level--;
+        newline();
+        indent();
+        out << "]";
+        if (comma) out << ",";
+        newline();
+    }
+
+    std::string str() {
+        return out.str();
+    }
+};
+
+std::string lx::run_json(registry &REGISTRY, bool pretty) {
+    json_writer jw(pretty);
+
+    jw.begin_object();
+
+    jw.key("tests");
+    jw.begin_array();
+
+    for (size_t i = 0; i < REGISTRY.test_cases.size(); i++) {
+        auto &test = REGISTRY.test_cases[i];
+
+        test.function(&test);
+
+        jw.begin_object();
+
+        jw.key("category"); jw.value(test.description.category); jw.out << ",";
+        jw.newline();
+
+        jw.key("name"); jw.value(test.description.name); jw.out << ",";
+        jw.newline();
+
+        jw.key("description"); jw.value(test.description.description); jw.out << ",";
+        jw.newline();
+
+        jw.key("events");
+        jw.begin_array();
+
+        for (size_t j = 0; j < test.events.size(); j++) {
+            auto &ev = test.events[j];
+
+            jw.begin_object();
+
+            jw.key("expression"); jw.value(ev.assertion.expression); jw.out << ",";
+            jw.newline();
+
+            jw.key("evaluated"); jw.value(ev.assertion.evaluated); jw.out << ",";
+            jw.newline();
+
+            jw.key("pass"); jw.value(ev.assertion.result == test_event_result::pass);
+
+            jw.end_object(j + 1 < test.events.size());
+        }
+
+        jw.end_array();
+
+        jw.end_object(i + 1 < REGISTRY.test_cases.size());
+    }
+
+    jw.end_array();
+    jw.end_object();
+
+    return jw.str();
 }
