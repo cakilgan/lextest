@@ -9,3 +9,5 @@ target_include_directories(lextest PUBLIC
 )
 
 target_compile_features(lextest PUBLIC cxx_std_17)
+
+add_subdirectory(examples)
