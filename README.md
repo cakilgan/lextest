@@ -125,10 +125,15 @@ Skipped tests appear in the summary but do not run.
 ```
 --no-color        Disable ANSI color output
 --color           Enable ANSI color output (default)
+
 --list            List tests without running them
---verbose         Show descriptions, file locations, and expression details
---fail-fast       Stop a test after the first failing assertion
+--verbose         Show descriptions, file locations, expression details and verbose summary
 --filter=CATEGORY Run only tests in the given category
+
+--fail-fast       Stop a test after the first failing assertion
+
+--json            Converts all test data to json
+--json-pretty     Makes json data indented and human readable (flag --json must be present)
 ```
 
 Example:
@@ -180,6 +185,11 @@ namespace lx::detail {
     }
 }
 ```
+
+---
+
+## JSON Output
+
 
 ---
 
