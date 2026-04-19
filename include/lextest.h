@@ -165,7 +165,7 @@ test_case &get_case(registry &registry_, test_id &id);
 #define LXEQ(a, b) __LX_TEST_EVENT_IMPL(a, b, ==, __FILE__, __LINE__)
 #define LXNEQ(a, b) __LX_TEST_EVENT_IMPL(a, b, !=, __FILE__, __LINE__)
 #define LXTRUE(x) __LX_TEST_EVENT_IMPL(x, true, ==, __FILE__, __LINE__)
-#define LXFALSE(x) __LX_TEST_EVENT_IMPL(x, true, ==, __FILE__, __LINE__)
+#define LXFALSE(x) __LX_TEST_EVENT_IMPL(x, false, ==, __FILE__, __LINE__)
 #define LXNULL(x) __LX_TEST_EVENT_IMPL(x, nullptr, ==, __FILE__, __LINE__)
 #define LXSTREQ(a, b) __LXSTR_IMPL(a, b, ==, __FILE__, __LINE__)
 #define LXSTRNEQ(a, b) __LXSTR_IMPL(a, b, !=, __FILE__, __LINE__)
