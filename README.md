@@ -58,7 +58,7 @@ All assertions are non-fatal — the test continues after a failure and all even
 
 ---
 
-## Skipping
+## Skipping Tests
 
 ```cpp
 LXTEST(Feature, not_ready, "wip") {
@@ -72,6 +72,49 @@ LXTEST(Feature, known_bug, "wip") {
 
 Skipped tests appear in the summary but don't run.
 
+
+# Deprecate
+
+Deprecated events will be evaluated and calculated.
+
+Warning message will show in log and event#control#deprecated
+will be true.
+
+```cpp
+LXTEST(Feature, not_ready, "wip") {
+    LXDEPRECATED LXGE(5,12);  // deprecated
+    ...
+}
+```
+
+```python
+
+WARN: this event is deprecated. (5 >= 12)
+  $    5 >= 12
+  FAIL    5 >= 12
+...
+
+```
+
+# Skip
+
+Skipped events will not be evaluated and calculated.
+
+Skip message will show in log and event#control#skip
+will be true.
+
+```cpp
+LXTEST(Feature, not_ready, "wip") {
+    LXSKIP LXGE(5,12);  // deprecated
+    ...
+}
+```
+
+```python
+SKIP: skipping this event... (5 >= 12)
+...
+```
+  
 ---
 
 ## Output
