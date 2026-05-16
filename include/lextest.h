@@ -62,12 +62,32 @@ template <typename T> std::string to_string_any(const T &value) {
     if constexpr (std::is_same_v<std::remove_cv_t<std::remove_reference_t<T>>,
                                  std::nullptr_t>) {
         return "<null>";
+    } else if constexpr (std::is_array_v<T>) {
+        // C-style arrays: int arr[N], char arr[N], etc.
+        using Elem = std::remove_extent_t<T>;
+        constexpr std::size_t N = std::extent_v<T>;
+        if constexpr (std::is_same_v<std::remove_cv_t<Elem>, char>) {
+            // char array — treat as string (strip null terminator if present)
+            return std::string(value, N > 0 && value[N - 1] == '\0' ? N - 1 : N);
+        } else {
+            std::string result = "[";
+            for (std::size_t i = 0; i < N; ++i) {
+                if (i > 0) result += ", ";
+                result += to_string_any(value[i]);
+            }
+            result += "]";
+            return result;
+        }
     } else if constexpr (std::is_pointer_v<T>) {
         if (value == nullptr)
             return "<null>"; // runtime null pointer
-        if constexpr (std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>,
-                                     char>) {
+        using Pointee = std::remove_cv_t<std::remove_pointer_t<T>>;
+        if constexpr (std::is_same_v<Pointee, char>) {
+            // char* — treat as C-string
             return std::string(value);
+        } else if constexpr (std::is_array_v<Pointee>) {
+            // pointer-to-array: T(*)[N] — dereference and recurse
+            return to_string_any(*value);
         } else {
             std::ostringstream oss;
             oss << static_cast<const void *>(value);
