@@ -156,6 +156,9 @@ Example:
 # With --verbose option
 <img width="347" height="953" alt="image" src="https://github.com/user-attachments/assets/b85f0c4d-a9fb-4f6d-a1a0-faf25951fbcf" />
 
+# Deprecate And Skip
+<img width="840" height="151" alt="image" src="https://github.com/user-attachments/assets/046a50f9-a79e-45ee-84ad-62bcbf78cfcc" />
+
 ---
 
 ## Custom Type Stringification
