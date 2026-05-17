@@ -159,6 +159,9 @@ Example:
 # Deprecate And Skip
 <img width="840" height="151" alt="image" src="https://github.com/user-attachments/assets/046a50f9-a79e-45ee-84ad-62bcbf78cfcc" />
 
+# Test Skip
+<img width="646" height="90" alt="image" src="https://github.com/user-attachments/assets/c043c6cd-ec00-4f0c-a520-801e729c92b3" />
+
 ---
 
 ## Custom Type Stringification
