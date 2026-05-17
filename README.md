@@ -147,29 +147,14 @@ Example:
 
 ## Output
 
-```
-----LEXTEST----
+# With --list option
+<img width="1148" height="427" alt="image" src="https://github.com/user-attachments/assets/f3804b15-e4ab-4004-9f51-02f8478f13dd" />
 
----- TEST : Math # Addition
-  PASS    5 == 5
-  PASS    3 > 2
+# Default options 
+<img width="757" height="827" alt="image" src="https://github.com/user-attachments/assets/6843fbdf-999b-43fd-bc97-47d40abacf3a" />
 
----- TEST : Math # Addition  [p:2 f:0] PASS
-
-OVERALL
-
-FAILURES:0 PASSES:1
-```
-
-With `--verbose`:
-
-```
----- TEST : Math # Addition
-DESCRIPTION : "basic arithmetic"
-  $    a + b == 5
-  PASS    5 == 5
-  test1.cpp:8
-```
+# With --verbose option
+<img width="347" height="953" alt="image" src="https://github.com/user-attachments/assets/b85f0c4d-a9fb-4f6d-a1a0-faf25951fbcf" />
 
 ---
 
