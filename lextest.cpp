@@ -100,6 +100,12 @@ int lx::run_all(registry &REGISTRY) {
             continue;
         }
 
+        printf("---- TEST : %s # %s\n%s%s",
+            yellow(test.description.category).c_str(),
+            magenta(test.description.name).c_str(),
+            config.verbose ? "DESCRIPTION : " : "",
+            config.verbose ? (green(test.description.description)+"\n").c_str(): "");
+
         test.function(&test);
 
         if (test.controller.state == lx::test_controller::test_state::skipped) {
@@ -109,15 +115,15 @@ int lx::run_all(registry &REGISTRY) {
                    test.description.category,
                    test.description.name);
 
+			        printf("---- TEST : %s # %s\n",
+            yellow(test.description.category).c_str(),
+            bold(magenta(test.description.name)).c_str()
+						);
+
             results.push_back(test_result::fail);
             continue;
         }
         
-        printf("---- TEST : %s # %s\n%s%s",
-            yellow(test.description.category).c_str(),
-            magenta(test.description.name).c_str(),
-            config.verbose ? "DESCRIPTION : " : "",
-            config.verbose ? (green(test.description.description)+"\n").c_str(): "");
 
         for (auto &ev : test.events) {
             if (ev.control.skipped) {
